@@ -2,6 +2,10 @@ DES
 ===
 This program is my own DES algorithm implementation made in C++11.
 
+Supported modes : 
+- ECB
+- CBC
+
 Compilation
 -----------
  
@@ -9,18 +13,29 @@ Compilation
 g++ --std=c++11 -Wall -o DES *.cpp
 ```
 
-Run
----
+How it works
+-------
 
-Main functions :
+First, you have to create a DES instance :
 ```c++
-// Takes a string plain to encrypt and returns the cipher
-std::string DES::encrypt(const std::string &plain, Key &key);
+std::string data("Hello World!");
+Key key("0123456789ABCDEF");
+
+// ECB Mode
+DES ecb(data, key);
+
+// CBC Mode
+DES cbc(data, key, 0xcbcbcbcbcbcbcbcb);
 ```
+Note: data can be **plaintext** or **ciphertext**.
 
+Next, you can encrypt or decrypt like this :
 ```c++
-// Takes a string cipher to decrypt and returns the plain
-std::string DES::decrypt(const std::string &cipher, Key &key);
+// Encryption
+std::string ciphertext = enc.encrypt();
+
+// Decryption
+std::string plaintext = enc.decrypt();
 ```
 
 Example
@@ -37,10 +52,15 @@ int main(int argc, char const *argv[])
     std::string plain("Hello World!");
     Key key("0123456789ABCDEF");
 
-    std::string cipher = DES::encrypt(plain, key);
-    std::string recovered = DES::decrypt(cipher, key);
+    DES des(plain, key);
 
-    std::cout << recovered << std::endl; //Hello World!
+    std::string cipher = des.encrypt();
+
+    des.setData(cipher);
+
+    std::string recovered = des.decrypt();
+
+    std::cout << recovered << std::endl; // Hello World!
     
     return 0;
 }

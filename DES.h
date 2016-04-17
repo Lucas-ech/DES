@@ -11,37 +11,68 @@
 class DES
 {
     public:
+        enum class Action {ENCRYPT, DECRYPT};
+        enum class Mode {ECB, CBC};
+        
         /**
-         * @brief Encrypts plaintext with DES algorithm
+         * @brief DES constructor
          * 
          * @param plain plaintext to encrypt
          * @param key Key used to encrypt the plaintext
-         * 
+         * @param iv Initialization vector (Only for CBC Mode)
+         */
+        DES(const std::string &data, const Key &key, unsigned long iv = 0x0);
+
+        ~DES() = default;
+
+        /**
+         * @brief Encrypts plaintext with DES algorithm
          * @return Cipher produced by DES encryption
          */
-        static std::string encrypt(const std::string &plain, Key &key);
+        std::string encrypt();
 
         /**
          * @brief Decrypts cipher width DES algorithm
-         * 
-         * @param cipher Cipher to decrypt
-         * @param key Key used to decrypt the cipher
-         * 
          * @return Plaintext produced by DES decryption
          */
-        static std::string decrypt(const std::string &cipher, Key &key);
-        enum class Action {ENCRYPT, DECRYPT};
+        std::string decrypt();
+
+        /**
+         * @brief Sets the DES key
+         * 
+         * @param key key
+         */
+        void setKey(const Key &key);
+
+        /**
+         * @brief Sets data that will be encrypted or decrypted
+         * 
+         * @param data Data
+         */
+        void setData(const std::string &data);
+
+        /**
+         * @brief Sets the initialization vector
+         * 
+         * @param iv Initialization vector
+         */
+        void setIv(const unsigned long iv);
+
+        /**
+         * @brief Sets the encryption mode (Only ECB and CBC are supported)
+         * 
+         * @param mode Mode
+         */
+        void setMode(Mode mode);
 
     private:
         /**
          * @brief Prepares data to be encrypted or decrypted according to Action and send it to rounds
          * 
-         * @param data Cipher or plaintext
-         * @param key DES key
          * @param a Used to know if we encrypt or decrypt
          * @return Encrypted or decrypted data
          */
-        static std::string crypt(const std::string &data, Key &key, Action a);
+        std::string crypt(Action a);
 
         /**
          * @brief Realizes the 16 DES's rounds
@@ -52,7 +83,7 @@ class DES
          * @param a Used to know if we encrypt or decrypt
          * @return Block encrypted or decrypted
          */
-        static unsigned long rounds(unsigned long l, unsigned long r, const SubKeyGenerator &subkeys, Action a);
+        unsigned long rounds(unsigned long l, unsigned long r, const SubKeyGenerator &subkeys, Action a);
 
         /**
          * @brief main DES algorithm
@@ -62,7 +93,7 @@ class DES
          * 
          * @return Result of one round iteration
          */
-        static unsigned long cipher(unsigned long r, unsigned long subKey);
+        unsigned long cipher(unsigned long r, unsigned long subKey);
         
         /**
          * @brief Computes data to the eight DES's S-Boxes
@@ -70,7 +101,12 @@ class DES
          * @param r data
          * @return Computed data of 32 bits
          */
-        static unsigned long sBoxes(unsigned long r);
+        unsigned long sBoxes(unsigned long r);
+
+        Key _key;
+        Mode _mode;
+        unsigned long _iv;
+        std::string _data;
 
 };
 

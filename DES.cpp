@@ -1,22 +1,50 @@
 #include "DES.h"
 
-std::string DES::encrypt(const std::string &plain, Key &key) {
-    return crypt(plain, key, Action::ENCRYPT);
+DES::DES(const std::string &data, const Key &key, unsigned long iv) : _key(key), _iv(iv), _data(data) {
+    if(iv != 0) {
+        _mode = Mode::CBC;
+    } else {
+        _mode = Mode::ECB;
+    }
 }
 
-std::string DES::decrypt(const std::string &cipher, Key &key) {
-    return crypt(cipher, key, Action::DECRYPT);
+std::string DES::encrypt() {
+    return crypt(Action::ENCRYPT);
 }
 
-std::string DES::crypt(const std::string &data, Key &key, Action a) {
-    unsigned long block, permuted, l, r;
-    Stream stream(data), out;
+std::string DES::decrypt() {
+    return crypt(Action::DECRYPT);
+}
 
-    SubKeyGenerator subkeys(key);
+void DES::setKey(const Key &key) {
+    _key = key;
+}
+
+void DES::setData(const std::string &data) {
+    _data = data;
+}
+
+void DES::setIv(const unsigned long iv) {
+    _iv = iv;
+}
+
+void DES::setMode(Mode mode) {
+    _mode = mode;
+}
+
+std::string DES::crypt(Action a) {
+    unsigned long block, permuted, l, r, iv = _iv;
+    Stream stream(_data), out;
+
+    SubKeyGenerator subkeys(_key);
 
     while (!stream.iseof())
     {
         stream >> block;
+
+        if(_mode == Mode::CBC) {
+            block ^= iv;
+        }
 
         permuted = Utils::permute(block, matrix::_ip);
 
@@ -24,6 +52,11 @@ std::string DES::crypt(const std::string &data, Key &key, Action a) {
         r = permuted & ((1ul << 32) - 1);
 
         block = rounds(l, r, subkeys, a);
+
+        if(_mode == Mode::CBC) {
+            iv = block;
+        }
+
         out << block;
     }
 
